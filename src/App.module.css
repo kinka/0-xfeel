@@ -1,0 +1,22 @@
+.App {
+  flex-direction: row;
+  display: flex;
+  height: 100%;
+}
+
+.Content, .Suggestions {
+  height: 100%;
+  flex: 1;
+}
+
+.Writer {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background-color: #282c34;
+  color: white;
+}
+.Suggestions {
+  white-space: pre-wrap;
+  padding: 0 9px;
+}
