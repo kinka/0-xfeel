@@ -1,8 +1,10 @@
 import styles from './App.module.css';
-import { createEffect, createRenderEffect, createSignal } from 'solid-js';
+import { createEffect, createRenderEffect, createSignal, onMount } from 'solid-js';
 
 function App() {
-  const [content, setContent] = createSignal('how do you feel?');
+  const initParams = (new URL(location.href)).searchParams;
+
+  const [content, setContent] = createSignal(initParams.get('text'));
   const [analysis, setAnalysis] = createSignal('');
 
   function model(el, value) {
@@ -18,9 +20,14 @@ function App() {
     });
   }
 
+  onMount(() => {
+    apiFetch('lexer', {text: initParams.get('text')}).then(res => {
+      setAnalysis(JSON.stringify(res.items, null, '\t'));
+    });
+  })
+
   function apiFetch(path, payload) {
-    const params = (new URL(location.href)).searchParams;
-    const accessToken = params.get('access_token');
+    const accessToken = initParams.get('access_token');
     return fetch(`https://aip.baidubce.com/rpc/2.0/nlp/v1/${path}?access_token=${accessToken}&charset=UTF-8`, 
     { body: JSON.stringify(payload), method: 'post', mode: 'cors', headers: { 'Content-Type': 'application/json' } })
     .then(res => res.json());
