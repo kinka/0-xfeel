@@ -2,8 +2,8 @@ import styles from './App.module.css';
 import { createEffect, createRenderEffect, createSignal } from 'solid-js';
 
 function App() {
-  let textRef;
   const [content, setContent] = createSignal('how do you feel?');
+  const [analysis, setAnalysis] = createSignal('');
 
   function model(el, value) {
     const [field, setField] = value();
@@ -12,9 +12,26 @@ function App() {
     el.addEventListener("input", (e) => {
       clearTimeout(timerId);
       timerId = setTimeout(() => {
-        console.log(field());
-      }, 3000);
+        analyze(field());
+      }, 2000);
       setField(e.target.value);
+    });
+  }
+
+  function apiFetch(path, payload) {
+    const params = (new URL(location.href)).searchParams;
+    const accessToken = params.get('access_token');
+    return fetch(`https://aip.baidubce.com/rpc/2.0/nlp/v1/${path}?access_token=${accessToken}&charset=UTF-8`, 
+    { body: JSON.stringify(payload), method: 'post', mode: 'cors', headers: { 'Content-Type': 'application/json' } })
+    .then(res => res.json());
+  }
+
+  function analyze(content) {
+    const talk = apiFetch('emotion', { "scene": "talk", "text": content });
+    const emotion = apiFetch('sentiment_classify', {text: content});
+
+    return Promise.all([talk, emotion]).then(([res1, res2]) => {
+      setAnalysis(JSON.stringify([...res1.items, ...res2.items], null, '\t'));
     });
   }
 
@@ -24,7 +41,7 @@ function App() {
         <textarea class={styles.Writer} use:model={[content, setContent]}></textarea>
       </section>
       <section class={styles.Suggestions}>
-        {content}
+        {analysis}
       </section>
     </div>
   );
